@@ -1,36 +1,80 @@
 // Initialize the map
 const map = L.map('map').setView([51.1657, 10.4515], 6); // Germany coordinates
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
+  attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-// Add Pétanque locations
-const petanqueLocations = [
-    { name: 'Berlin', coords: [52.5200, 13.4050] },
-    { name: 'Munich', coords: [48.1351, 11.5820] },
-    { name: 'Hamburg', coords: [53.5511, 9.9937] }
-];
+// handle map clicks
+map.on('click', async (e) => {
+  const { lat, lng } = e.latlng;
 
-petanqueLocations.forEach(location => {
-    L.marker(location.coords)
-        .addTo(map)
-        .bindPopup(`<b>${location.name}</b><br>Pétanque Platz`)
-        .openPopup();
+  // prompt the user for place details
+  const platzName = prompt('den Name eintragen: ');
+  if (!platzName) return;
+
+  const zugang = prompt('den Zugang eintragen (oeffentlich oder Privat): ');
+  if (!zugang) return;
+
+  const publicAccess = prompt('Outdoor oder Indoor?:');
+  if (!publicAccess) return;
+
+  const anzahlFelder = prompt('Die Anzahl der Spielfelder eintragen: ');
+  if (!anzahlFelder || isNaN(anzahlFelder)) {
+    alert('Bitte eine gueltige Nummer eingeben: ');
+    return;
+  }
+
+  const notizen = prompt('Notizen(optional): ');
+
+  const neuerPlatz = {
+    platzName,
+    zugang,
+    publicAccess,
+    anzahlFelder: parseInt(anzahlFelder, 10),
+    coords: [e.latlng.lat, e.latlng.lng],
+    notizen: notizen || ''
+  };
+
+  L.marker(neuerPlatz.coords).addTo(map).bindPopup(
+        `<b>${neuerPlatz.platzName}</b><br>
+        Zugang: ${neuerPlatz.zugang}"<br>
+        Typ: ${neuerPlatz.publicAccess}
+        Feld: ${neuerPlatz.anzahlFelder}<br>
+        Notizen: ${neuerPlatz.notizen}`
+  ).openPopup();
+  // save to the backend
+  try {
+    const response = await fetch('/api/plaetze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(neuerPlatz)
+    });
+    if (!response.ok) throw new Error('Plaetze konnten nicht gespeichert werden');
+    console.log('platz erfolgreich gespeichert');
+  } catch (error) {
+    console.log('Fehler beim Speichern des Platzes');
+  }
 });
+// fetch and display existing places from the backend
+async function ladePlatz () {
+  try {
+    const response = await fetch('/api/plaetze');
+    if (!response.ok) throw new Error('Plaetze konnten nicht gespeichert werden');
+    const plaetzen = await response.json();
 
-const matchForm = document.getElementById('matchForm');
-const matchList = document.getElementById('matchList');
-//managing match events
-matchForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const matchDate = document.getElementById('matchDate').value;
-    const players = document.getElementById('players').value;
-    const score = document.getElementById('score').value;
-
-    const newMatch = document.createElement('div');
-    newMatch.textContent = `${matchDate} - ${players} - ${score}`;
-    matchList.appendChild(newMatch);
-
-    // Reset the form
-    matchForm.reset();
-});
+    plaetzen.forEach((platz) => {
+      const marker = L.marker([platz.coords[0], platz.coords[1]]).addTo(map);
+      marker.bindPopup(`
+                <b>${platz.platzName}</b><br>
+                Zugang: ${platz.zugang}<br>
+                Typ: ${platz.publicAccess}<br>
+                Spielfelder: ${platz.anzahlFelder}<br>
+                Notizen: ${platz.notizen || 'Keine'}
+            `);
+    });
+  } catch (error) {
+    console.error('Fehler beim Aufruf des Ortes');
+  }
+}
+// load places on map
+loadPlaces();
