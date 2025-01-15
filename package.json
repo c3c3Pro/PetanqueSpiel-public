@@ -1,0 +1,38 @@
+{
+  "name": "we",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "TA, SB",
+  "license": "ISC",
+  "scripts": {
+    "clean": "npm run clean:dist && rm -rf node_modules && rm -rf package-lock.json",
+    "clean:dist": "rm -rf dist",
+    "lint": "semistandard --verbose client/src/js/*.mjs server/src/server.mjs server/**/*.mjs | snazzy",
+    "format": "semistandard --verbose --fix client/src/js/*.mjs server/**/*.mjs server/src/server.mjs | snazzy",
+    "html": "mkdir -p dist && cp client/src/index.html dist/index.html",
+    "css": "mkdir -p dist && lessc client/src/styles/style.less dist/style.css",
+    "js": "mkdir -p dist && esbuild client/src/js/Main.mjs --bundle --outfile=dist/bundle.js",
+    "minify:css": "lessc --clean-css dist/style.css dist/style.css",
+    "minify:js": "terser dist/bundle.js --compress --mangle --comments=false -o dist/bundle.js",
+    "minify": "npm run minify:css && npm run minify:js",
+    "debug": "npm run lint && npm run html && npm run css && npm run js",
+    "build": "npm run debug && npm run minify",
+    "start": "node server/src/server.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "http-server": "^14.1.1",
+    "less": "^4.2.1",
+    "less-plugin-clean-css": "^1.6.0",
+    "lesshint": "^6.3.7",
+    "lesshint-reporter-stylish": "^3.0.0",
+    "semistandard": "^17.0.0",
+    "snazzy": "^9.0.0",
+    "terser": "^5.36.0"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "mongodb": "^6.12.0"
+  }
+}

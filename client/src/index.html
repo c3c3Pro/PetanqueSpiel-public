@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/style.css" > 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /> 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <title>Pétanque</title>
+</head>
+<body>
+     <!-- Header Section -->
+     <header>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#places">Place Management</a></li>
+                <li><a href="#games">Game Management</a></li>
+                <li><a href="#documentation">Documentation</a></li>
+            </ul>
+        </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+        <!--map section-->
+        <h1>Interactive Map</h1>
+        <section id="map">
+            <div id="map-container" style="height: 400px; width: 100%;"></div>
+        </section>
+
+        <section id="places">
+            <h2>Place Management</h2>
+
+            <!-- Form for managing Pétanque locations -->
+            <form id="locationForm">
+                <label for="name">Platz Name:</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="latitude">Latitude:</label>
+                <input type="text" id="latitude" name="latitude" required>
+
+                <label for="longitude">Longitude:</label>
+                <input type="text" id="longitude" name="longitude" required>
+
+                <button type="submit" class="btn">Add Location</button>
+            </form>
+
+             <!-- List of locations -->
+             <div id="locationList">
+                <h3>Available Locations</h3>
+                <ul>
+                    <!-- Dynamically generated location list goes here -->
+                </ul>
+            </div>
+        </section>
+
+        <section id="games">
+            <h2>Game Management</h2>
+            <button class="btn start-game">Start New Game</button>
+            
+            <div id="current-games">
+                <h3>Ongoing Games</h3>
+                <ul>
+                    <!-- List of games -->
+                </ul>
+            </div>
+
+            <div id="completed-games">
+                <h3>Completed Games</h3>
+                <ul>
+                    <!-- Paginated list of games -->
+                </ul>
+            </div>
+
+             <!-- Match Management Form -->
+        <form id="matchForm">
+            <label for="matchDate">Match Date:</label>
+            <input type="date" id="matchDate" name="matchDate" required>
+            
+            <label for="players">Players:</label>
+            <input type="text" id="players" name="players" placeholder="Player1, Player2, ..." required>
+
+            <label for="score">Score:</label>
+            <input type="text" id="score" name="score" placeholder="e.g., 13:10" required>
+
+            <button type="submit" class="btn">Add Match</button>
+        </form>
+
+        <!-- Match List -->
+        <div id="matchList">
+            <h3>Match History</h3>
+        </div>
+
+        </section>
+    </main>
+
+     <!-- Footer -->
+     <footer>
+        <p>&copy; 2024 Pétanque Place Manager</p>
+    </footer>
+
+    <!-- Link to the bundled JavaScript file -->
+    <script src="bundle.js" defer></script>
+
+    </body>
+</html>
