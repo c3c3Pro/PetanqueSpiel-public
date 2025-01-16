@@ -57,8 +57,8 @@ map.on('click', async (e) => {
 
   L.marker(neuerPlatz.coords).addTo(map).bindPopup(
         `<b>${neuerPlatz.platzName}</b><br>
-        Zugang: ${neuerPlatz.zugang}"<br>
-        Typ: ${neuerPlatz.publicAccess}
+        Zugang: ${neuerPlatz.zugang}<br>
+        Typ: ${neuerPlatz.publicAccess}<br>
         Feld: ${neuerPlatz.anzahlFelder}<br>
         Notizen: ${neuerPlatz.notizen}`
   ).openPopup();
