@@ -1,12 +1,32 @@
+/* global L, prompt, alert, ladePlatz */
 // Initialize the map
 const map = L.map('map').setView([51.1657, 10.4515], 6); // Germany coordinates
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
+// function to check if the location is in Germany
+async function isGermany (lat, lng) {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.address && data.address.country === 'Germany';
+  } catch (error) {
+    console.error('Der Bereich ist ausserhalb von Deutschland: ', error);
+    return false;
+  }
+}
+
 // handle map clicks
 map.on('click', async (e) => {
   const { lat, lng } = e.latlng;
+  // ensures that the clicked map is within Germany
+  const inGermany = await isGermany(lat, lng);
+  if (!inGermany) {
+    alert('Dieser Ort liegt ausserhalb Deutschlands. Bitte waehlen Sie eine deutsche Position aus!');
+    return;
+  }
 
   // prompt the user for place details
   const platzName = prompt('den Name eintragen: ');
@@ -77,4 +97,4 @@ async function ladePlatz () {
   }
 }
 // load places on map
-loadPlaces();
+ladePlatz();
