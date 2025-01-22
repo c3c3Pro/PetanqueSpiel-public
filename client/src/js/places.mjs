@@ -2,7 +2,7 @@
 import { map, isGermany, addMarker } from './map.mjs';
 
 // Function to load places from backend and add them to the map
-export async function ladePlatz() {
+export async function ladePlatz () {
   try {
     const response = await fetch('/api/plaetze');
     if (!response.ok) throw new Error('Plaetze konnten nicht geladen werden');
@@ -15,7 +15,7 @@ export async function ladePlatz() {
 }
 
 // Function to handle adding a new place
-async function handleMapClick(e) {
+async function handleMapClick (e) {
   const { lat, lng } = e.latlng;
   const inGermany = await isGermany(lat, lng);
   if (!inGermany) {
