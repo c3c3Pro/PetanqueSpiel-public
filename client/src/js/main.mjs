@@ -1,24 +1,17 @@
-/* global L, prompt, alert, ladePlatz */
-// Initialize the map
-const map = L.map('map').setView([51.1657, 10.4515], 6); // Germany coordinates
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+import './places.mjs'; // This initializes map event listeners and loads places
+import { fetchGames } from './games.mjs';
+import { updatePlaceList, updateGameList } from './ui.mjs';
 
-// function to check if the location is in Germany
-async function isGermany (lat, lng) {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    return data.address && data.address.country === 'Germany';
-  } catch (error) {
-    console.error('Der Bereich ist ausserhalb von Deutschland: ', error);
-    return false;
-  }
+async function loadData() {
+  const places = await fetchPlaces();
+  updatePlaceList(places);
+
+  const games = await fetchGames();
+  updateGameList(games);
 }
 
-// handle map clicks
+loadData();
+/* // handle map clicks
 map.on('click', async (e) => {
   const { lat, lng } = e.latlng;
   // ensures that the clicked map is within Germany
@@ -95,6 +88,7 @@ async function ladePlatz () {
   } catch (error) {
     console.error('Fehler beim Aufruf des Ortes');
   }
-}
+} */
+
 // load places on map
-ladePlatz();
+//ladePlatz();
