@@ -15,4 +15,6 @@ async function loadData () {
     console.error('Fehler beim Laden der Daten: ', error);
   }
 }
-loadData();
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+});

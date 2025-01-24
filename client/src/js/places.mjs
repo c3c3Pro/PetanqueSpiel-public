@@ -1,39 +1,68 @@
 /* global prompt, alert */
 import { map, isGermany, addMarker } from './map.mjs';
-
+import { updatePlaceList } from './ui.mjs';
 // Function to load places from backend and add them to the map
 export async function ladePlatz () {
   try {
     const response = await fetch('/api/plaetze');
     if (!response.ok) throw new Error('Plaetze konnten nicht geladen werden');
-    const plaetzen = await response.json();
+    const plaetzen = await response.json(); // Correctly define plaetzen
 
     plaetzen.forEach((platz) => addMarker(platz));
   } catch (error) {
-    console.error('Fehler beim Aufruf des Ortes');
+    console.error('Fehler beim Aufruf des Ortes', error.message);
   }
 }
-
+// function to fetch places from the backend
+export async function fetchPlaces () {
+  try {
+    const response = await fetch('/api/plaetze');
+    if (!response.ok) throw new Error('Plaetze konnten nicht geladen werden');
+    const plaetzen = await response.json();
+    return plaetzen;
+  } catch (error) {
+    console.error('Fehler beim Aufruf des Ortes', error.message);
+    return [];
+  }
+}
 // Function to handle adding a new place
 async function handleMapClick (e) {
   const { lat, lng } = e.latlng;
+  // check if the place already exists to avoid any duplications
+  const existingPlaces = await fetchPlaces();
+  const alreadyExists = existingPlaces.some(p => p.coords[0] === lat && p.coords[1] === lng);
+  if (alreadyExists) {
+    alert('Ein Platz existiert bereits an dieser Position! bitte neue Position auswaehlen');
+    return;
+  }
+  // if the user clicked on a place outside Germany
   const inGermany = await isGermany(lat, lng);
   if (!inGermany) {
     alert('Dieser Ort liegt ausserhalb Deutschlands. Bitte waehlen Sie eine deutsche Position aus!');
     return;
   }
-
+  // fill out the form here for the place
+  // platzname, zugang, access, anzahl der Felder, notizen(optional)
   const platzName = prompt('den Name eintragen: ');
-  if (!platzName) return;
+  if (!platzName.trim()) {
+    alert('Der Name darf nicht leer sein!');
+    return;
+  }
 
-  const zugang = prompt('den Zugang eintragen (oeffentlich oder privat): ');
-  if (!zugang) return;
+  let zugang;
+  do {
+    zugang = prompt('Zugang eingeben(oeffentlich oder Privat): ')?.trim().toLowerCase();
+    if (zugang === null) return;
+  } while (!['oeffentlich', 'privat'].includes(zugang));
 
-  const publicAccess = prompt('Outdoor oder Indoor?:');
-  if (!publicAccess) return;
+  let publicAccess;
+  do {
+    publicAccess = prompt('Outdoor oder Indoor?: ')?.trim().toLowerCase();
+    if (publicAccess === null) return;
+  } while (!['outdoor', 'indoor'].includes(publicAccess));
 
   const anzahlFelder = prompt('Die Anzahl der Spielfelder eintragen: ');
-  if (!anzahlFelder || isNaN(anzahlFelder)) {
+  if (!anzahlFelder || isNaN(anzahlFelder) || anzahlFelder <= 0) {
     alert('Bitte eine gültige Nummer eingeben: ');
     return;
   }
@@ -59,8 +88,10 @@ async function handleMapClick (e) {
     });
     if (!response.ok) throw new Error('Plaetze konnten nicht gespeichert werden');
     console.log('Platz erfolgreich gespeichert');
+    // update UI list
+    updatePlaceList(await fetchPlaces());
   } catch (error) {
-    console.log('Fehler beim Speichern des Platzes');
+    console.log('Fehler beim Speichern des Platzes', error.message);
   }
 }
 

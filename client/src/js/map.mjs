@@ -1,13 +1,13 @@
 /* global L, alert */
 // Initialize the map
-const map = L.map('map').setView([51.1657, 10.4515], 6); // Germany coordinates
+export const map = L.map('map-container').setView([51.1657, 10.4515], 6); // Germany coordinates
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
 const markers = new Map();
 // function to check if the location is in Germany
-async function isGermany (lat, lng) {
+export async function isGermany (lat, lng) {
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
   try {
     const response = await fetch(url);
@@ -46,9 +46,7 @@ export async function addMarker (platz) {
     alert('Dieser Ort liegt ausserhalb von Deutschland');
     return;
   }
-  const marker = L.marker(platz.coords).addTo(map);
-
-  marker(platz.coords).addTo(map).bindPopup(`
+  const marker = L.marker(platz.coords).addTo(map).bindPopup(`
       <b>${platz.platzName}</b><br>
       Zugang: ${platz.zugang}<br>
       Typ: ${platz.publicAccess}<br>
@@ -64,6 +62,7 @@ export function removeMarker (coords) {
   // first check if the coordinates are valid for removal
   if (!coords || coords.length !== 2) {
     console.error('ungueltige Koordinaten: ', coords);
+    return;
   }
   const key = coords.join(',');
 

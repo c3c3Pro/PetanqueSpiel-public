@@ -12,7 +12,7 @@
     "format": "semistandard --verbose --fix client/src/js/*.mjs server/**/*.mjs server/src/server.mjs | snazzy",
     "html": "mkdir -p dist && cp client/src/index.html dist/index.html",
     "css": "mkdir -p dist && lessc client/src/styles/style.less dist/style.css",
-    "js": "mkdir -p dist && esbuild client/src/js/Main.mjs --bundle --outfile=dist/bundle.js",
+    "js": "mkdir -p dist && esbuild client/src/js/main.mjs --bundle --outfile=dist/bundle.js",
     "minify:css": "lessc --clean-css dist/style.css dist/style.css",
     "minify:js": "terser dist/bundle.js --compress --mangle --comments=false -o dist/bundle.js",
     "minify": "npm run minify:css && npm run minify:js",
