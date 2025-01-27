@@ -41,7 +41,7 @@ async function handleMapClick (e) {
     alert('Dieser Ort liegt ausserhalb Deutschlands. Bitte waehlen Sie eine deutsche Position aus!');
     return;
   }
-  // fill out the form here for the place
+  // ask the user to fill out the form
   // platzname, zugang, access, anzahl der Felder, notizen(optional)
   const platzName = prompt('den Name eintragen: ');
   if (!platzName.trim()) {
