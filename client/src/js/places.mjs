@@ -51,14 +51,16 @@ async function handleMapClick (e) {
 
   let zugang;
   do {
-    zugang = prompt('Zugang eingeben(oeffentlich oder Privat): ')?.trim().toLowerCase();
+    zugang = prompt('Zugang eingeben(oeffentlich oder Privat): ');
     if (zugang === null) return;
+    zugang = zugang.trim().toLowerCase();
   } while (!['oeffentlich', 'privat'].includes(zugang));
 
   let publicAccess;
   do {
-    publicAccess = prompt('Outdoor oder Indoor?: ')?.trim().toLowerCase();
+    publicAccess = prompt('Outdoor oder Indoor?: ');
     if (publicAccess === null) return;
+    publicAccess = publicAccess.trim().toLowerCase();
   } while (!['outdoor', 'indoor'].includes(publicAccess));
 
   const anzahlFelder = prompt('Die Anzahl der Spielfelder eintragen: ');
