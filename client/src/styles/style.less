@@ -125,3 +125,23 @@ footer {
   padding: 1rem 0;
   margin-top: 2rem;
 }
+@primary-color: #4CAF50;
+@border-color: #ddd;
+@row-alt-color: #f2f2f2;
+
+@danger-color: #e74c3c;
+@hover-color: #c0392b;
+
+.delete-btn {
+    background-color: @danger-color;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+
+    &:hover {
+        background-color: @hover-color;
+    }
+}
