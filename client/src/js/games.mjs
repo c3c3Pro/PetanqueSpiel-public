@@ -1,4 +1,4 @@
-/* global confirm */
+/* global confirm, alert, prompt */
 
 import { updateGameList } from './ui.mjs';
 
@@ -15,6 +15,12 @@ export async function fetchGames () {
 }
 // function to handle adding a game (send to the backend)
 export async function addGame (game) {
+  // check if any score is greater than 13
+  if (game.score.some(s => s > 13)) {
+    alert('Ein Spieler kann nicht mehr als 13 Punkte haben!');
+    return;
+  }
+
   try {
     const response = await fetch('/api/games', {
       method: 'POST',
@@ -23,7 +29,7 @@ export async function addGame (game) {
     });
     if (!response.ok) throw new Error('Fehler beim Speichern der Partie');
     console.log('Partie hinzugefuegt');
-    updateGameList(await fetchGames());
+    updateGameList(await fetchGames(), game.placeId);
   } catch (error) {
     console.error(error);
   }
@@ -32,77 +38,46 @@ export async function addGame (game) {
 document.getElementById('matchForm').addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  const matchDate = document.getElementById('matchDate').value;
-  const players = document.getElementById('players').value;
-  const score = document.getElementById('score').value;
+  const matchDate = new Date(document.getElementById('matchDate').value).toISOString();
+  const players = document.getElementById('players').value.split(',').map(p => p.trim());
+  const score = document.getElementById('score').value.split(',').map(s => parseInt(s.trim(), 10));
 
   const game = { matchDate, players, score };// create a game object
   await addGame(game);
 });
-// Funktion zum Abrufen und Anzeigen der Match History
-export async function displayMatchHistory() {
-  const matchTableBody = document.getElementById('matchTableBody');
+// editing games
+export async function editGame (gameId) {
+  const newName = prompt('Neuer Name fuer das Spiel eingeben: ');
+  if (!newName) return; // cancel if empty
 
   try {
-    const games = await fetchGames(); // Holt alle gespeicherten Spiele
-    matchTableBody.innerHTML = ''; // Vorherige Einträge leeren
-
-    if (games.length === 0) {
-      matchTableBody.innerHTML = '<tr><td colspan="4">Keine Spiele gefunden.</td></tr>';
-      return;
-    }
-
-    games.forEach(game => {
-      const row = document.createElement('tr');
-
-      // Spieldatum formatieren
-      const formattedDate = new Date(game.matchDate).toLocaleDateString('de-DE');
-
-      row.innerHTML = `
-        <td>${formattedDate}</td>
-        <td>${game.players.join(', ')}</td>
-        <td>${game.score.join(':')}</td>
-        <td>
-          <button class="delete-btn" data-id="${game._id}">Löschen</button>
-        </td>
-      `;
-
-      matchTableBody.appendChild(row);
+    const response = await fetch(`/api/games/${gameId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName })
     });
-
-    // Event Listener für die Löschen-Buttons hinzufügen
-    document.querySelectorAll('.delete-btn').forEach(button => {
-      button.addEventListener('click', async (event) => {
-        const gameId = event.target.getAttribute('data-id');
-        await deleteGame(gameId);
-      });
-    });
-
+    if (!response) throw new Error(`Fehler: ${response.statusText}`);
+    alert('Spiel erfolgreich aktualisiert!');
+    updateGameList(await fetchGames());
   } catch (error) {
-    console.error('Fehler beim Laden der Match History:', error);
+    console.error('Fehler beim Aktualisieren', error);
   }
 }
-
 // Funktion zum Löschen eines Spiels
-export async function deleteGame(gameId) {
+export async function deleteGame (gameId) {
   if (!confirm('Möchten Sie dieses Spiel wirklich löschen?')) return;
 
   try {
     const response = await fetch(`/api/games/${gameId}`, { method: 'DELETE' });
     if (!response.ok) throw new Error('Fehler beim Löschen der Partie');
-    
+
     console.log('Spiel gelöscht.');
-    displayMatchHistory(); // Tabelle nach dem Löschen aktualisieren
+    updateGameList(await fetchGames()); // refresh list after deleting
   } catch (error) {
     console.error(error);
   }
 }
-
-// Match History beim Laden der Seite abrufen
-document.addEventListener('DOMContentLoaded', displayMatchHistory);
-
-
-// Lade die Match History beim Start
-document.addEventListener('DOMContentLoaded', displayMatchHistory);
-
-
+// load match history on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  updateGameList(await fetchGames());
+});

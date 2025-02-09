@@ -1,9 +1,19 @@
 /* global L, alert */
-// Initialize the map
-export const map = L.map('map-container').setView([51.1657, 10.4515], 6); // Germany coordinates
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+import { fetchGames } from './games.mjs';
+import { updateGameList } from './ui.mjs';
+export let map;
+document.addEventListener('DOMContentLoaded', () => {
+  const mapContainer = document.getElementById('map-container');
+  if (!mapContainer) {
+    console.error('Map container element is missing');
+    return;
+  }
+  // Initialize the map
+  map = L.map('map-container').setView([51.1657, 10.4515], 6); // Germany coordinates
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+});
 
 const markers = new Map();
 // function to check if the location is in Germany
@@ -51,8 +61,18 @@ export async function addMarker (platz) {
       Zugang: ${platz.zugang}<br>
       Typ: ${platz.publicAccess}<br>
       Feld: ${platz.anzahlFelder}<br>
-      Notizen: ${platz.notizen || 'Keine'}
-    `).openPopup();
+      Notizen: ${platz.notizen || 'Keine'}<br>
+      <button class="edit-btn" data-id="${platz.id}">Bearbeiten</button>   
+      <button class="delete-btn" data-id="${platz.id}" data-key="${key}">Loeschen</button>
+    `).on('click', async function () {
+    try {
+      const allGames = await fetchGames();
+      const filteredGames = allGames.filter(game => game.platz === platz.id);
+      updateGameList(filteredGames);
+    } catch (error) {
+      console.error('Fehler beim Aufruf der Spiele', error);
+    }
+  });
 
   markers.set(key, marker);// stores the marker
 }
