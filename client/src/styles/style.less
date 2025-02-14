@@ -1,107 +1,124 @@
-@primary-color:#4CAF50;
+@primary-color: #4CAF50;
+@border-color: #ddd;
+@row-alt-color: #f2f2f2;
 @white-color: white;
-@darker-color: #333;
+@darker-color: rgb(43, 42, 42);
 @danger-color: #e74c3c;
 @hover-color: #c0392b;
 
 body {
-  font-family: Arial, sans-serif;
+  background-color: @primary-color;
+  color: @darker-color;
   margin: 0;
   padding: 0;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
 }
 
 /*header styling*/
 header {
   background: @primary-color;
   color: @white-color;
-  padding: 1rem 0;
+  line-height: 1.6;
+  padding: 15px 20px;
   text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
 }
 
-header nav ul {
+nav ul {
   display: flex;
+  justify-content: center;
   list-style: none;
-  background-color: @darker-color;
-  padding: 10px;
+  background-color: darken(@primary-color, 10%);
+  border-bottom: 2px solid lighten(@primary-color, 10%);
 }
 
-header nav ul li {
-  margin: 0 10px;
+nav ul li {
+  margin: 0 15px;
 }
 
-header nav ul li a {
+nav ul li a {
   color: @white-color;
   text-decoration: none;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-radius: 5px;
+  transition: background 0.3s;
 }
 
-header nav ul li a:hover{
-  color: lighten(@primary-color, 20%);
+nav ul li a:hover {
+  background: lighten(@primary-color, 10%);
 }
 
 h1, h2, h3 {
   text-align: center;
   margin-top: 0;
 }
-
-/*section styling*/
-section {
-  margin: 2rem auto;
-  max-width: 800px;
-  padding: 1rem;
-  background: @white-color;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+/*welcome text*/
+#welcome {
+  text-align: center;
+  background-color: @border-color;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
-/* Map Styling */
-.map-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 400px;
-  width: 100%;
-  border: 2px solid @darker-color;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-/* Form Styles */
-form {
+/* container layout */
+.container {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
+  max-width: 1200px;
+  margin: 20px auto;
+  gap: 20px;
+  padding: 20px;
+}
+/*sidebar styling*/
+.sidebar {
+  background: @white-color;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+}
+#locationList {
+  list-style: none;
+}
+#locationList li {
+  background: @white-color;
+  padding: 8px;
+  margin-bottom: 5px;
+}
+/*map , games, and match history section*/
+#map-container, #games, #matchHistory {
+  flex-grow: 1;
+  background: @row-alt-color;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+#map {
+  height: 100%;
+  width: 100%;
 }
 
-form label {
+/*match form styling*/
+#matchForm {
+  background: @white-color;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+#matchForm label {
   font-weight: bold;
 }
-
-form input, form select {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
+#matchForm input {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+  border: 1px solid @border-color;
 }
-
-form button {
-  background-color: @primary-color;
-  color: @white-color;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-form button:hover {
-  background-color: darken(@primary-color, 10%);
-}
-
 
 /*Button styling*/
-.btn {
+.btn, .edit-btn {
   display: inline-block;
   padding: 0.7rem 1.5rem;
   font-size: 1rem;
@@ -115,45 +132,31 @@ form button:hover {
   text-align: center;
 }
 
-.btn:hover {
+.btn, .edit-btn:hover {
   background-color: darken(@primary-color, 10%);
 }
-.edit-btn, .delete-btn {
+
+.btn.delete-btn {
   background-color: @danger-color;
-  color: white;
-  border: none;
-  padding: 6px 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  
+  &:hover {
+      background-color: @hover-color;
+  }
 }
-.delete-btn {
-  background-color: @danger-color;
-}
-.edit-btn:hover {
-  background-color: #0056b3;
-}
-.delete-btn:hover {
-  background-color: @hover-color;
-}
-.start-game {
-  display: block;
-  margin: 1rem auto;
-}
-/* table styling*/
-table{
+/*adding a table*/
+table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1.5rem;
 }
-table th, table td {
+table th, table td{
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
 table th {
   background-color: @primary-color;
-  color: @white-color;
+  color:@white-color;
   font-weight: bold;
 }
 table tr:hover {

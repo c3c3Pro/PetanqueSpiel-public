@@ -1,19 +1,9 @@
 /* global L, alert */
-import { fetchGames } from './games.mjs';
-import { updateGameList } from './ui.mjs';
-export let map;
-document.addEventListener('DOMContentLoaded', () => {
-  const mapContainer = document.getElementById('map-container');
-  if (!mapContainer) {
-    console.error('Map container element is missing');
-    return;
-  }
-  // Initialize the map
-  map = L.map('map-container').setView([51.1657, 10.4515], 6); // Germany coordinates
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-});
+// Initialize the map
+export const map = L.map('map-container').setView([51.1657, 10.4515], 6); // Germany coordinates
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
 
 const markers = new Map();
 // function to check if the location is in Germany
@@ -26,15 +16,11 @@ export async function isGermany (lat, lng) {
       throw new Error(`Server status ${response.status}`);
     }
     const data = await response.json();
-    // if the API is unable to respond
-    if (!data.address || !data.address.country) {
-      throw new Error('ungueltige Antwort von API');
-    }
 
     return data.address && data.address.country === 'Germany';
   } catch (error) {
     console.warn('Der Bereich ist ausserhalb von Deutschland: ', error);
-    return null;
+    return false;
   }
 }
 
@@ -61,18 +47,8 @@ export async function addMarker (platz) {
       Zugang: ${platz.zugang}<br>
       Typ: ${platz.publicAccess}<br>
       Feld: ${platz.anzahlFelder}<br>
-      Notizen: ${platz.notizen || 'Keine'}<br>
-      <button class="edit-btn" data-id="${platz.id}">Bearbeiten</button>   
-      <button class="delete-btn" data-id="${platz.id}" data-key="${key}">Loeschen</button>
-    `).on('click', async function () {
-    try {
-      const allGames = await fetchGames();
-      const filteredGames = allGames.filter(game => game.platz === platz.id);
-      updateGameList(filteredGames);
-    } catch (error) {
-      console.error('Fehler beim Aufruf der Spiele', error);
-    }
-  });
+      Notizen: ${platz.notizen || 'Keine'}
+    `).openPopup();
 
   markers.set(key, marker);// stores the marker
 }

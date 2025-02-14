@@ -1,16 +1,16 @@
 import './map.mjs';
 import { fetchPlaces } from './places.mjs'; // This initializes map event listeners and loads places
 import { fetchGames } from './games.mjs';
-import { updatePlaceList, updateGameList } from './ui.mjs';
+import { renderPlaces, renderGames } from './ui.mjs';
 
 // loads the website
 async function loadData () {
   try {
     const places = await fetchPlaces();
-    updatePlaceList(places);
+    renderPlaces(places);
 
     const games = await fetchGames();
-    updateGameList(games);
+    renderGames(games);
   } catch (error) {
     console.error('Fehler beim Laden der Daten: ', error);
   }

@@ -20,3 +20,15 @@ export const addPlace = async (req, res) => {
     res.status(400).json({ message: 'Fehler beim Speichern des Platzes' });
   }
 };
+
+//added delete place function
+export const deletePlace = async (req, res) => {
+  try{
+    const { id } = req.params;
+    await Place.findByIdAndDelete(id);
+    res.json({ message: 'Platz geloescht'}); 
+  } catch (error){
+    console.error('Fehler beim Loeschen des Platzes', error);
+    res.status(500).json({message: 'Fehler beim Loeschen des Platzes'});
+  }
+};

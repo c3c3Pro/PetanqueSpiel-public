@@ -1,145 +1,144 @@
 /* global confirm, alert */
-import { fetchGames, deleteGame } from './games.mjs';// used to refresh the game list
-import { fetchPlaces } from './places.mjs';
-// function to handle adding a place (sent to backend)
-export async function addPlace (place) {
-  try {
-    const response = await fetch('api/places', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(place)
+/*
+modifikation:
+die Struktur von User-Interface sieht jetzt so aus:
+1)den Platz und das Spiel holen
+2)den Platz aktualisieren (render) und delete funktion
+3)das Spiel aktualisieren (auch render) und delete funktion
+*/
+import { handleEditGame, displayMatchHistory } from './games.mjs';
+import { handleEditPlace } from './places.mjs';
+
+let places = [];
+let games = [];
+
+document.addEventListener('DOMContentLoaded', async function () {
+  places = await fetchPlaces();
+  games = await fetchGames();
+  if (places.length > 0) renderPlaces();
+  if (games.length > 0) renderGames();
+  displayMatchHistory();
+  const locationList = document.getElementById('locationList');
+  // event listener nur einmal fuer den Platz
+  if (locationList) {
+    locationList.addEventListener('click', function (event) {
+      const placeId = event.target.dataset.id;
+      if (event.target.classList.contains('edit-btn')) {
+        handleEditPlace(placeId);
+      }
+      if (event.target.classList.contains('delete-btn')) {
+        deletePlace(placeId);
+      }
     });
-    if (!response.ok) throw new Error('Fehler beim Speichern des Ortes');
-    console.log('Ort hinzugefuegt');
-    updatePlaceList(await fetchPlaces());
+  }
+  const matchTableBody = document.getElementById('matchTableBody');
+  // event listener nur einmal fuer das Spiel
+  if (matchTableBody) {
+    matchTableBody.addEventListener('click', async (event) => {
+      const gameId = event.target.dataset.id; // Id extrahieren
+      if (!gameId) return;
+      if (event.target.classList.contains('edit-btn')) {
+        handleEditGame(gameId);
+      } else if (event.target.classList.contains('delete-btn')) {
+        await deleteGame(gameId);
+      }
+    });
+  }
+});
+export async function fetchPlaces () {
+  try {
+    const response = await fetch('/api/plaetze');
+    if (!response.ok) throw new Error('Fehler beim Laden der Orte');
+    return await response.json();
   } catch (error) {
     console.error(error);
+    alert('Fehler beim Laden des Ortes. Bitte versuchen Sie  es später erneut.');
+    return [];
   }
 }
-// event listener for the location form submission
-document.getElementById('locationForm').addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const name = document.getElementById('name').value;
-  // get the location from the map
-  if (!navigator.geolocation) {
-    alert('Geolocation wird nicht unterstuetzt');
-    return;
+export async function fetchGames () {
+  try {
+    const response = await fetch('/api/games');
+    if (!response.ok) throw new Error('Fehler beim Laden der Spiele');
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    alert('Fehler beim Laden des Spiels. Bitte versuchen Sie  es später erneut.');
+    return [];
   }
-  navigator.geolocation.getCurrentPosition(async (position) => {
-    const latitude = position.coords.latitude;
-    const longitude = position.coords.longitude;
+}
+export function renderPlaces () {
+  const locationList = document.getElementById('locationList');
+  locationList.innerHTML = '';
 
-    const place = { name, latitude, longitude };// automatically set coordinates
-    await addPlace(place);
-  }, (error) => {
-    console.error('Fehler beim Aufruf der Position', error);
-    alert('Konnte den Standort nicht abrufen');
+  places.forEach((place) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+    <span>${place.name} (${Number(place.lat).toFixed(4)}, ${Number(place.lng).toFixed(4)})</span>
+    <button class="edit-btn" data-id="${place._id}">Bearbeiten </button>
+    <button class="delete-btn" data-id="${place._id}">Löschen</button>`;
+    locationList.appendChild(li);
   });
-});
-// function that can let the user delete the place
+}
+// function for deleting places
 export async function deletePlace (placeId) {
-  if (!confirm('Moechten Sie diesen Ort wirklich loeschen?')) return;
+  if (!confirm('Möchten Sie diesen Ort wirklich löschen?')) return;
+  try {
+    await fetch(`/api/plaetze/${placeId}`, { method: 'DELETE' });
+    places = await fetchPlaces(); // refresh places list
+    renderPlaces();
+  } catch (error) {
+    console.error('Fehler beim Loeschen des Ortes.');
+  }
+}
+export async function renderGames () {
+  const ongoingGameList = document.getElementById('onGoingGameList');
+  const completedGameList = document.querySelector('#completed-games ul');
+
+  if (!ongoingGameList || !completedGameList) {
+    console.error('Fehler: Listenelemente nicht gefunden!');
+    return;
+  }
+
+  ongoingGameList.innerHTML = '';
+  completedGameList.innerHTML = '';
+
+  const games = await fetchGames();
+  if (games.length === 0) {
+    ongoingGameList.innerHTML = '<li>Keine Spiele gefunden</li>';
+    completedGameList.innerHTML = '<li>Keine abgschlossene Spiele</li>';
+    return;
+  }
+  games.forEach((game) => {
+    const li = document.createElement('li');
+    const formattedDate = new Date(game.matchDate).toLocaleDateString('de-DE');
+
+    li.innerHTML = `
+    <span>${formattedDate} - ${game.players} (${game.score})</span>
+    <button class="edit-btn" data-id="${game._id}">Bearbeiten </button>
+    <button class="delete-btn" data-id="${game._id}">loeschen </button>`;
+
+    if (game.completed) {
+      completedGameList.appendChild(li);
+    } else {
+      ongoingGameList.appendChild(li);
+    }
+  });
+}
+// Funktion zum Loeschen des Spiels
+export async function deleteGame (gameId) {
+  if (!confirm('Möchten Sie dieses Spiel wirklich löschen?')) return;
 
   try {
-    const response = await fetch(`/api/places/${placeId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Fehler beim Loeschen des Ortes');
-    console.log(`Ort geloescht: ${placeId}`);
-    updatePlaceList(await fetchPlaces());
+    const response = await fetch(`/api/games/${gameId}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) throw new Error('Fehler beim Löschen des Spiels');
+
+    await renderGames(); // Aktualisiert die UI nach dem Löschen
   } catch (error) {
-    console.error(error);
+    console.error('Fehler beim Löschen des Spiels:', error);
+    alert('❌ Das Spiel konnte nicht gelöscht werden.');
   }
 }
-// function that updates the game list based on selected place
-export function updateGameList (games, selectedPlaceId) {
-  const gameContainer = document.getElementById('gameList');
-  gameContainer.innerHTML = '';
-
-  if (!games || games.length === 0) {
-    gameContainer.innerHTML = '<p>Keine Spiele gefunden.</p>';
-    return;
-  }
-  // filter games to include only matches played at the selected place
-  const filteredGames = games.filter(game => game.placeId === selectedPlaceId);
-
-  if (filteredGames.length === 0) {
-    gameContainer.innerHTML = '<p>Keine Spiele fuer diesen Ort gefunden.</p>';
-    return;
-  }
-  // create a table
-  const table = document.createElement('table');
-  table.classList.add('game-table');
-  // create table header
-  const headerRow = document.createElement('tr');
-  headerRow.innerHTML = `
-    <th>Datum</th>
-    <th>Spieler</th>
-    <th>Punkte</th>
-    <th>Aktionen</th>
-  `;
-  table.appendChild(headerRow);
-
-  // create table rows for each game
-  games.forEach((game) => {
-    const row = document.createElement('tr');
-
-    const formattedDate = game.matchDate ? new Date(game.matchDate).toLocaleDateString() : 'Kein Datum';
-    const playersText = game.players ? game.players.join(', ') : 'Unbekannt';
-    const scoreText = game.ScoreHistory ? game.ScoreHistory.join(' - ') : 'Keine Punkte';
-    row.innerHTML = `
-      <td>${formattedDate}</td>
-      <td>${playersText}</td>
-      <td>${scoreText}</td>
-    `;
-    // for handling delete button
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Löschen';
-    deleteButton.addEventListener('click', async () => {
-      await deleteGame(game.id); // Call the imported delete function
-      updateGameList(await fetchGames(), selectedPlaceId); // Refresh the UI after deletion and for the selected place
-    });
-
-    // add delete button to a separate table cell
-    const actionCell = document.createElement('td');
-    actionCell.appendChild(deleteButton);
-    row.appendChild(actionCell);
-
-    table.appendChild(row);
-  });
-
-  gameContainer.appendChild(table);
-}
-// function to handle the updating place list
-export function updatePlaceList (places) {
-  const placeContainer = document.getElementById('locationList');
-  placeContainer.innerHTML = '';
-
-  places.forEach(place => {
-    const placeItem = document.createElement('div');
-    placeItem.classList.add('place-item');
-
-    placeItem.innerHTML = `
-    <b>${place.platzName}</b><br>
-    Zugang: ${place.zugang}<br>
-    Outdoor/Indoor: ${place.publicAccess}<br>
-    Spielfelder: ${place.anzahlFelder}<br>
-    Koordinaten: ${place.coords.join(', ')}<br>
-    Notizen: ${place.notizen || 'Keine Notizen'}
-    `;
-    // create a delete button for each place
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Loeschen';
-    deleteButton.addEventListener('click', async () => {
-      await deletePlace(place.id);// call the delete function for places
-      updatePlaceList(await fetchPlaces());
-    });
-
-    placeItem.appendChild(deleteButton);
-    placeContainer.appendChild(placeItem);
-  });
-}
-// load place list on page load
-document.addEventListener('DOMContentLoaded', async () => {
-  updateGameList(await fetchGames());
-  updatePlaceList(await fetchPlaces());
-});
