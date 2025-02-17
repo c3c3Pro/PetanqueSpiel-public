@@ -1,7 +1,6 @@
 import './map.mjs';
-import { fetchPlaces } from './places.mjs'; // This initializes map event listeners and loads places
-import { fetchGames } from './games.mjs';
-import { renderPlaces, renderGames } from './ui.mjs';
+import { fetchPlaces, renderPlaces } from './places.mjs'; // This initializes map event listeners and loads places
+import { fetchGames, renderGames } from './games.mjs';
 
 // loads the website
 async function loadData () {

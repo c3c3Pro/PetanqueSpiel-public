@@ -1,6 +1,6 @@
 /* global L, alert */
 // Initialize the map
-export const map = L.map('map-container').setView([51.1657, 10.4515], 6); // Germany coordinates
+export const map = L.map('map').setView([51.1657, 10.4515], 6); // Germany coordinates
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors'
 }).addTo(map);
