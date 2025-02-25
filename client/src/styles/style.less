@@ -1,7 +1,9 @@
-@primary-color: #4CAF50;
+@primary-color: rgb(150, 238, 241); 
+@light-primary: rgb(100, 125, 170);
 @border-color: #ddd;
 @row-alt-color: #f2f2f2;
-@white-color: white;
+@white-color: rgb(235, 235, 235);
+@white:white;
 @darker-color: rgb(43, 42, 42);
 @danger-color: #e74c3c;
 @hover-color: #c0392b;
@@ -19,7 +21,7 @@ body {
 header {
   background: @primary-color;
   color: @white-color;
-  line-height: 1.6;
+  line-height: 3;
   padding: 15px 20px;
   text-align: center;
   font-weight: bold;
@@ -29,12 +31,13 @@ nav ul {
   display: flex;
   justify-content: center;
   list-style: none;
-  background-color: darken(@primary-color, 10%);
-  border-bottom: 2px solid lighten(@primary-color, 10%);
+  background-color: darken(@primary-color, 30%);
+  font-size: 20px;
 }
 
 nav ul li {
-  margin: 0 15px;
+  margin: 0 100px;
+  border-block-color: @light-primary;
 }
 
 nav ul li a {
@@ -47,69 +50,85 @@ nav ul li a {
 }
 
 nav ul li a:hover {
-  background: lighten(@primary-color, 10%);
+  background: lighten(@light-primary, 20%);
 }
 
 h1, h2, h3 {
   text-align: center;
   margin-top: 0;
+  font-size: 40px;
 }
+
 /*welcome text*/
 #welcome {
   text-align: center;
-  background-color: @border-color;
+  background-color: @white-color;
   padding: 20px;
   margin-bottom: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+p {
+  font-size: 23px;
+}
+
 /* container layout */
 .container {
   display: flex;
   flex-direction: column;
-  max-width: 1200px;
+  max-width: 1700px;
   margin: 20px auto;
   gap: 20px;
   padding: 20px;
 }
+
 /*sidebar styling*/
 .sidebar {
   background: @white-color;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 5px 15px @white-color;
 }
+
 #locationList {
   list-style: none;
 }
+
 #locationList li {
   background: @white-color;
   padding: 8px;
   margin-bottom: 5px;
+  font-size: 23px;
 }
+
 /*map , games, and match history section*/
 #map-container, #games, #matchHistory {
   flex-grow: 1;
   background: @row-alt-color;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 6px @white-color;
+  font-size: 23px;
 }
+
 #map {
   height: 100%;
   width: 100%;
 }
 
 /*match form styling*/
-#matchForm {
-  background: @white-color;
+#matchForm, #matchDate, #matchTime, #players, #score {
+  background: @white;
   padding: 15px;
   border-radius: 5px;
   margin-bottom: 20px;
+  font-size: 20px;
 }
+
 #matchForm label {
   font-weight: bold;
 }
+
 #matchForm input {
   width: 100%;
   padding: 8px;
@@ -117,52 +136,70 @@ h1, h2, h3 {
   border: 1px solid @border-color;
 }
 
-/*Button styling*/
-.btn, .edit-btn {
+/* 🛠️ Button Styling */
+.btn, .edit-btn, .delete-btn {
   display: inline-block;
-  padding: 0.7rem 1.5rem;
-  font-size: 1rem;
+  padding: 1.2rem 2.5rem;
+  font-size: 23px;
   font-weight: bold;
-  background-color: @primary-color;
-  color: @white-color;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.2s;
   text-align: center;
 }
 
-.btn, .edit-btn:hover {
-  background-color: darken(@primary-color, 10%);
-}
+/* Bearbeiten-Button */
+.btn.edit-btn {
+  background-color: darken(@primary-color, 30%);
+  color: @white-color;
 
-.btn.delete-btn {
-  background-color: @danger-color;
-  
   &:hover {
-      background-color: @hover-color;
+    background: lighten(@light-primary, 20%);
+    transform: scale(1.05); /* Leichter Vergrößerungseffekt */
   }
 }
-/*adding a table*/
+
+/* Löschen-Button */
+.btn.delete-btn {
+  background-color: @danger-color;
+  color: @white-color;
+
+  &:hover {
+    background-color: @hover-color;
+    transform: scale(1.05); /* Leichter Vergrößerungseffekt */
+  }
+
+  &:active {
+    transform: scale(0.95); /* Klick-Effekt */
+  }
+}
+
+/* Tabellen-Styling */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1.5rem;
+  font-size: 23px;
 }
-table th, table td{
+
+table th, table td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
+
 table th {
   background-color: @primary-color;
-  color:@white-color;
+  color: @white-color;
   font-weight: bold;
 }
+
 table tr:hover {
   background-color: #f1f1f1;
 }
 
+/* Footer */
 footer {
   background: @primary-color;
   color: @white-color;
@@ -170,4 +207,3 @@ footer {
   padding: 1rem 0;
   margin-top: 2rem;
 }
-

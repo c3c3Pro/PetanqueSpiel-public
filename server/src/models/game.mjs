@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const GameSchema = new mongoose.Schema({
   matchDate: { type: Date, required: true },
+  matchTime: { type: String, required: false },
   players: {
     type: [String],
     required: true,
