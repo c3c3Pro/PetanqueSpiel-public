@@ -107,15 +107,29 @@ function showMenu (platz, key, event) {
   menu.style.position = 'absolute';
   menu.style.background = 'white';
   menu.style.border = '1px solid #ccc';
-  menu.style.padding = '5px';
+  menu.style.padding = '10px';
+  menu.style.borderRadius = '6px';
+  menu.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
   menu.style.zIndex = '1000';
   menu.style.left = `${event.pageX}px`;
   menu.style.top = `${event.pageY}px`;
 
-  menu.innerHTML = `
-    <button id="edit-${key}">Bearbeiten</button>
-    <button id="delete-${key}">Löschen</button>
-  `;
+  // Create the edit button
+  const editButton = document.createElement('button');
+  editButton.id = `edit-${key}`;
+  editButton.textContent = 'Bearbeiten';
+  editButton.className = 'btn edit-btn'; // Apply the edit button class
+  editButton.style.marginRight = '10px'; // Add spacing between buttons
+
+  // Create the delete button
+  const deleteButton = document.createElement('button');
+  deleteButton.id = `delete-${key}`;
+  deleteButton.textContent = 'Löschen';
+  deleteButton.className = 'btn delete-btn'; // Apply the delete button class
+
+  // Append buttons to the menu
+  menu.appendChild(editButton);
+  menu.appendChild(deleteButton);
 
   document.body.appendChild(menu);
 
