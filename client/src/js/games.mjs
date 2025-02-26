@@ -202,7 +202,7 @@ async function updateGame (gameId, game) {
 }
 
 // Function to handle editing a game
-export async function handleEditGame (gameId) {
+export async function handleEditGame(gameId) {
   console.log('🔍 Bearbeiten gestartet für Spiel-ID:', gameId);
   try {
     const response = await fetch(`/api/games/${gameId}`);
@@ -220,6 +220,7 @@ export async function handleEditGame (gameId) {
       formattedDate = game.matchDate;
     }
 
+    // Populate the form fields
     document.getElementById('matchDate').value = formattedDate;
     document.getElementById('matchTime').value = game.matchTime || '';
     document.getElementById('players').value = game.players.join(', ');
@@ -231,6 +232,12 @@ export async function handleEditGame (gameId) {
 
     // Change button text
     document.querySelector('#matchForm button[type="submit"]').textContent = 'Änderungen speichern';
+
+    // Scroll to the form
+    const matchForm = document.getElementById('matchForm');
+    if (matchForm) {
+      matchForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } catch (error) {
     showError('❌ Fehler beim Bearbeiten des Spiels: ' + error.message);
   }
