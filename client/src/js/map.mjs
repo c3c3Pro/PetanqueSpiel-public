@@ -5,13 +5,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-const markers = new Map();
-// function to check if the location is in Germany
+export const markers = new Map();
+
+// Function to check if the location is in Germany
 export async function isGermany (lat, lng) {
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
   try {
     const response = await fetch(url);
-    // if the server is unable to respond
     if (!response.ok) {
       throw new Error(`Server status ${response.status}`);
     }
@@ -26,44 +26,150 @@ export async function isGermany (lat, lng) {
 
 // Function to add a place marker on the map
 export async function addMarker (platz) {
-  // check if the coordinates are valid first
   if (!platz || !platz.coords || platz.coords.length !== 2) {
     console.error('Ungueltige Platzdaten: ', platz);
     alert('Fehler: ungueltige Platzdaten.');
     return;
   }
 
-  const key = platz.coords.join(',');
+  const key = platz._id; // Use the place's unique ID as the key
 
-  if (markers.has(key)) return;
+  if (markers.has(key)) {
+    console.log(`Marker with ID ${key} already exists. Skipping.`);
+    return;
+  }
 
   const inGermany = await isGermany(platz.coords[0], platz.coords[1]);
   if (!inGermany) {
     alert('Dieser Ort liegt ausserhalb von Deutschland');
     return;
   }
-  const marker = L.marker(platz.coords).addTo(map).bindPopup(`
+
+  const popupContent = document.createElement('div');
+  popupContent.innerHTML = `
+    <b>${platz.platzName}</b><br>
+    Zugang: ${platz.zugang}<br>
+    Typ: ${platz.publicAccess}<br>
+    Feld: ${platz.anzahlFelder}<br>
+    Notizen: ${platz.notizen || 'Keine'}
+  `;
+
+  // Add the three-dot menu
+  const menuButton = document.createElement('span');
+  menuButton.className = 'menu-button';
+  menuButton.style.float = 'right';
+  menuButton.style.cursor = 'pointer';
+  menuButton.innerHTML = '&#x22EE;';
+
+  menuButton.addEventListener('click', (event) => {
+    event.stopPropagation(); // Prevent the event from reaching the marker
+    showMenu(platz, key, event);
+  });
+
+  popupContent.appendChild(menuButton);
+
+  try {
+    const marker = L.marker(platz.coords).addTo(map).bindPopup(popupContent);
+    markers.set(key, marker);
+
+    // Ensure the popup opens on marker click
+    marker.on('click', () => {
+      marker.openPopup();
+    });
+
+    console.log('Popup content:', popupContent.innerHTML);
+    console.log('Marker created at:', platz.coords);
+    return marker;
+  } catch (err) {
+    console.error('Error creating marker:', err);
+    return null;
+  }
+}
+
+// Function to remove a marker
+export function removeMarker (key) {
+  if (markers.has(key)) {
+    const marker = markers.get(key);
+    if (marker) {
+      map.removeLayer(marker);
+    }
+    markers.delete(key);
+  } else {
+    console.warn('Kein Marker gefunden für diesen Key:', key);
+  }
+}
+
+// Function to show the edit/delete menu
+function showMenu (platz, key, event) {
+  event.stopPropagation();
+
+  const menu = document.createElement('div');
+  menu.style.position = 'absolute';
+  menu.style.background = 'white';
+  menu.style.border = '1px solid #ccc';
+  menu.style.padding = '5px';
+  menu.style.zIndex = '1000';
+  menu.style.left = `${event.pageX}px`;
+  menu.style.top = `${event.pageY}px`;
+
+  menu.innerHTML = `
+    <button id="edit-${key}">Bearbeiten</button>
+    <button id="delete-${key}">Löschen</button>
+  `;
+
+  document.body.appendChild(menu);
+
+  document.getElementById(`edit-${key}`).addEventListener('click', () => {
+    // Dispatch event for editing - only places.mjs will handle this
+    const event = new CustomEvent('editPlace', { detail: platz });
+    document.dispatchEvent(event);
+    document.body.removeChild(menu);
+  });
+
+  document.getElementById(`delete-${key}`).addEventListener('click', () => {
+    // Dispatch event for deletion - only places.mjs will handle this
+    const event = new CustomEvent('deletePlace', { detail: key });
+    document.dispatchEvent(event);
+    document.body.removeChild(menu);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target)) {
+      document.body.removeChild(menu);
+    }
+  }, { once: true });
+}
+
+// Function to update marker content
+export function updateMarker (platz) {
+  const key = platz._id;
+  const marker = markers.get(key);
+
+  if (marker) {
+    const popupContent = document.createElement('div');
+    popupContent.innerHTML = `
       <b>${platz.platzName}</b><br>
       Zugang: ${platz.zugang}<br>
       Typ: ${platz.publicAccess}<br>
       Feld: ${platz.anzahlFelder}<br>
       Notizen: ${platz.notizen || 'Keine'}
-    `).openPopup();
+    `;
 
-  markers.set(key, marker);// stores the marker
-}
+    // Add the three-dot menu again
+    const menuButton = document.createElement('span');
+    menuButton.className = 'menu-button';
+    menuButton.style.float = 'right';
+    menuButton.style.cursor = 'pointer';
+    menuButton.innerHTML = '&#x22EE;';
 
-// function to remove a marker by coordinates
-export function removeMarker (coords) {
-  // first check if the coordinates are valid for removal
-  if (!coords || coords.length !== 2) {
-    console.error('ungueltige Koordinaten: ', coords);
-    return;
-  }
-  const key = coords.join(',');
+    menuButton.addEventListener('click', (event) => {
+      event.stopPropagation();
+      showMenu(platz, key, event);
+    });
 
-  if (markers.has(key)) {
-    map.removeLayer(markers.get(key));
-    markers.delete(key);
+    popupContent.appendChild(menuButton);
+    marker.setPopupContent(popupContent);
+  } else {
+    console.warn('Marker not found for key:', key);
   }
 }

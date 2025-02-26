@@ -1,11 +1,11 @@
-/* global alert, prompt, confirm */
+/* global alert, confirm */
 // Function to display errors
-function showError(message) {
+function showError (message) {
   alert(message); // Replace with a toast notification for better UX
   console.error(message);
 }
 // Function to render games in a table
-export function renderGames(games) {
+export function renderGames (games) {
   const gamesTable = document.getElementById('matchList'); // Ensure this exists in your HTML
   if (!gamesTable) {
     console.error('Tabelle für Spiele nicht gefunden!');
@@ -27,13 +27,13 @@ export function renderGames(games) {
 }
 
 // Function to fetch games from the backend
-export async function fetchGames() {
+export async function fetchGames () {
   try {
     const response = await fetch('/api/games');
     if (!response.ok) throw new Error('Fehler beim Laden der Partien');
 
     const games = await response.json();
-    console.log("🎯 FetchGames - Geladene Daten:", games);
+    console.log('🎯 FetchGames - Geladene Daten:', games);
 
     return games.map(game => ({
       ...game,
@@ -47,10 +47,8 @@ export async function fetchGames() {
     return [];
   }
 }
-
-
 // Function to handle adding a game (send to the backend)
-export async function addGame(game) {
+export async function addGame (game) {
   try {
     const response = await fetch('/api/games/', {
       method: 'POST',
@@ -70,7 +68,7 @@ export async function addGame(game) {
   }
 }
 // Function to dynamically append a new game to the table
-function appendGameToTable(game) {
+function appendGameToTable (game) {
   const matchTableBody = document.getElementById('matchTableBody');
   if (!matchTableBody) return;
 
@@ -78,9 +76,9 @@ function appendGameToTable(game) {
 }
 // Function to create a game row
 // Funktion zur Erstellung einer Tabellenzeile für ein Spiel
-function gameRow(game) {
+function gameRow (game) {
   const row = document.createElement('tr');
-  row.setAttribute('data-id', game._id);  // 🔥 WICHTIG! Ohne das geht die Bearbeitung nicht.
+  row.setAttribute('data-id', game._id); // 🔥 WICHTIG! Ohne das geht die Bearbeitung nicht.
 
   const formattedDate = new Date(game.matchDate).toLocaleDateString('de-DE');
   const formattedTime = game.matchTime || 'Keine Zeit';
@@ -98,9 +96,6 @@ function gameRow(game) {
   return row;
 }
 
-
-
-
 // Event-Listener für die Tabelle, um Klicks auf "Bearbeiten" und "Löschen" zu erkennen
 document.getElementById('matchTableBody')?.addEventListener('click', async (event) => {
   const target = event.target;
@@ -113,13 +108,11 @@ document.getElementById('matchTableBody')?.addEventListener('click', async (even
     await deleteGame(gameId);
   }
 });
-
-
 // Function to check if a game is completed and move it to the completed-games section
-function checkAndMoveCompletedGame(game) {
+function checkAndMoveCompletedGame (game) {
   const completedGamesList = document.getElementById('completed-games').querySelector('ul');
   const matchTableBody = document.getElementById('matchTableBody');
-  
+
   if (!completedGamesList || !matchTableBody) return;
 
   // Prüfen, ob das Spiel bereits existiert
@@ -138,8 +131,6 @@ function checkAndMoveCompletedGame(game) {
     matchTableBody.appendChild(gameRow(game));
   }
 }
-
-
 // Form submission handler
 document.getElementById('matchForm')?.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -164,15 +155,14 @@ document.getElementById('matchForm')?.addEventListener('submit', async (event) =
 });
 // Function to handle editing a game
 
-
-export async function handleEditGame(gameId) {
-  console.log("🔍 Bearbeiten gestartet für Spiel-ID:", gameId); // Debugging
+export async function handleEditGame (gameId) {
+  console.log('🔍 Bearbeiten gestartet für Spiel-ID:', gameId); // Debugging
   try {
     const response = await fetch(`/api/games/${gameId}`);
     if (!response.ok) throw new Error('Spiel nicht gefunden');
     const game = await response.json();
 
-    console.log("📥 Geladene Spieldaten:", game); // Debugging
+    console.log('📥 Geladene Spieldaten:', game); // Debugging
 
     document.getElementById('matchDate').value = new Date(game.matchDate).toISOString().split('T')[0];
     document.getElementById('matchTime').value = game.matchTime || '';
@@ -189,75 +179,8 @@ export async function handleEditGame(gameId) {
     showError('❌ Fehler beim Bearbeiten des Spiels: ' + error.message);
   }
 }
-
-
-
-// Anpassung des Event Listeners für das Formular
-document.getElementById('matchForm')?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const matchDate = document.getElementById('matchDate').value;
-  const matchTime = document.getElementById('matchTime').value;
-  const players = document.getElementById('players').value;
-  const score = document.getElementById('score').value;
-
-  const playerArray = players.split(',').map(name => name.trim()).filter(name => name);
-  if (playerArray.length !== 2) {
-    return showError('❌ Bitte geben Sie genau zwei Spielernamen ein.');
-  }
-
-  const scoreArray = score.split(':').map(num => Number(num.trim()));
-  if (scoreArray.length !== 2 || scoreArray.some(num => Number.isNaN(num) || num < 0 || num > 13)) {
-    return showError('❌ Das Score-Feld muss im Format "Zahl:Zahl" sein (zwischen 0 und 13).');
-  }
-
-  if (!editingGameId) {
-    return showError('❌ Es wurde kein Spiel zum Bearbeiten ausgewählt.');
-  }
-
-  const gameData = { matchDate, matchTime, players: playerArray, score: scoreArray };
-  const submitButton = document.querySelector('#matchForm button[type="submit"]');
-
-  try {
-    // **Spiel aktualisieren (PUT)**
-    const response = await fetch(`/api/games/${editingGameId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(gameData)
-    });
-
-    if (!response.ok) throw new Error('Fehler beim Aktualisieren des Spiels');
-    const updatedGame = await response.json();
-
-    showError('✅ Spiel erfolgreich aktualisiert!');
-
-    // **Altes Spiel aus der Tabelle entfernen**
-    document.querySelector(`tr[data-id="${editingGameId}"]`)?.remove();
-
-    // **Neues (aktualisiertes) Spiel in die Tabelle einfügen**
-    appendGameToTable(updatedGame);
-
-    // **Bearbeitungs-ID zurücksetzen und Button-Text anpassen**
-    editingGameId = null;
-    submitButton.textContent = 'Spiel hinzufügen';
-  } catch (error) {
-    showError('❌ Fehler beim Speichern des Spiels: ' + error.message);
-  }
-
-  // **Formular zurücksetzen**
-  event.target.reset();
-});
-
-
-
-
-
-
-
-
-
 // Function to delete a game
-export async function deleteGame(gameId) {
+export async function deleteGame (gameId) {
   if (!confirm('Sind Sie sicher, dass Sie dieses Spiel löschen möchten?')) return;
 
   try {
@@ -271,18 +194,18 @@ export async function deleteGame(gameId) {
   }
 }
 // Funktion zum Anzeigen des Spielverlaufs
-export async function displayMatchHistory() {
+export async function displayMatchHistory () {
   const matchTableBody = document.getElementById('matchTableBody');
   if (!matchTableBody) {
-    console.error("⚠️ matchTableBody nicht gefunden!");
+    console.error('⚠️ matchTableBody nicht gefunden!');
     return;
   }
 
-  console.log("📌 displayMatchHistory() wird aufgerufen!");
+  console.log('📌 displayMatchHistory() wird aufgerufen!');
 
   try {
     const games = await fetchGames(); // Spiele abrufen
-    console.log("🎯 Geladene Spiele:", games);
+    console.log('🎯 Geladene Spiele:', games);
 
     matchTableBody.innerHTML = ''; // Vorherige Einträge löschen
 
@@ -295,12 +218,10 @@ export async function displayMatchHistory() {
       if (!game._id) return;
       matchTableBody.appendChild(gameRow(game));
     });
-
   } catch (error) {
     showError('Fehler beim Laden der Match History: ' + error.message);
   }
 }
-
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.matchHistoryLoaded) {
@@ -309,19 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-
-
-// Event delegation for edit and delete buttons
-document.getElementById('matchTableBody')?.addEventListener('click', async (event) => {
-  const target = event.target;
-  const gameId = target.dataset.id;
-  if (!gameId) return;
-
-  if (target.classList.contains('edit-btn')) {
-    await handleEditGame(gameId);
-  } else if (target.classList.contains('delete-btn')) {
-    await deleteGame(gameId);
-  }
-});
 // Load match history on page load
+// hier problematisch : EventTarget.addEventListener: At least 2 arguments required, but only 1 passed
 document.addEventListener(displayMatchHistory);

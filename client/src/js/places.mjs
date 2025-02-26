@@ -1,7 +1,6 @@
 /* global prompt, alert, confirm */
-import { map, isGermany, addMarker } from './map.mjs';
-// Store markers by place ID
-const markers = new Map();
+import { map, isGermany, markers, addMarker, removeMarker, updateMarker } from './map.mjs';
+
 // Function to update the UI with places
 export function renderPlaces (places) {
   const placesList = document.getElementById('locationList');
@@ -11,11 +10,13 @@ export function renderPlaces (places) {
 
   places.forEach(platz => {
     const item = document.createElement('li');
+    item.setAttribute('data-id', platz._id); // Add data-id attribute for easier deletion
     item.textContent = `${platz.platzName} (${platz.publicAccess}, ${platz.zugang}) - ${platz.anzahlFelder} Felder`;
     item.addEventListener('click', () => handleEditPlace(platz));
     placesList.appendChild(item);
   });
 }
+
 // function to fetch places from the backend
 export async function fetchPlaces () {
   try {
@@ -27,30 +28,48 @@ export async function fetchPlaces () {
     return [];
   }
 }
+
 // Function to load places from backend and update the map
 export async function ladePlatz () {
+  if (!map) {
+    console.error('Map object is not initialized');
+    return;
+  }
+
+  map.off('click', handleMapClick); // Ensure handleMapClick is defined
   try {
     document.getElementById('loadingIndicator')?.classList.remove('hidden'); // Show loading
 
     const places = await fetchPlaces();
-
-    // Remove old markers only if fetching was successful
-    markers.forEach(marker => map.removeLayer(marker));
+    markers.forEach((marker, key) => {
+      map.removeLayer(marker);
+    });
     markers.clear();
 
-    places.forEach(place => {
-      const marker = addMarker(place);
-      if (marker) {
-        markers.set(place._id, marker);
-        marker.on('click', () => handleEditPlace(place));
+    // Use for...of for async operations instead of forEach
+    for (const place of places) {
+      try {
+        const marker = await addMarker(place); // Ensure addMarker is valid
+
+        if (marker) {
+          console.log('✅ Marker added successfully for:', place.platzName);
+        } else {
+          console.error('❌ Failed to add marker for:', place.platzName);
+        }
+      } catch (err) {
+        console.error('Error adding marker for place:', place, err);
       }
-    });
+    }
 
     renderPlaces(places);
   } catch (error) {
     console.error('Fehler beim Laden der Orte:', error.message);
+  } finally {
+    map.on('click', handleMapClick); // Ensure this works
+    document.getElementById('loadingIndicator')?.classList.add('hidden'); // Hide loading
   }
 }
+
 // Function to handle adding a new place
 async function handleMapClick (e) {
   const { lat, lng } = e.latlng;
@@ -86,7 +105,6 @@ async function handleMapClick (e) {
   }
 
   const neuerPlatz = { platzName, zugang, publicAccess, anzahlFelder, coords: [lat, lng], notizen: '' };
-  addMarker(neuerPlatz);
 
   try {
     const response = await fetch('/api/places', {
@@ -97,8 +115,13 @@ async function handleMapClick (e) {
 
     if (!response.ok) throw new Error('Plätze konnten nicht gespeichert werden');
 
+    const savedPlace = await response.json();
+    await addMarker(savedPlace);
+
     console.log('Platz erfolgreich gespeichert');
-    ladePlatz(); // Refresh the list
+    // Refresh the place list instead of reloading all markers
+    const places = await fetchPlaces();
+    renderPlaces(places);
   } catch (error) {
     console.log('Fehler beim Speichern des Platzes:', error.message);
   }
@@ -125,15 +148,14 @@ export async function handleEditPlace (platz) {
 
   const updatedNotizen = prompt('Notizen (optional):', platz.notizen) || '';
 
-  const updateConfirmed = confirm('Möchten Sie auch den Standort ändern?');
-  const newCoords = updateConfirmed
-    ? await new Promise(resolve => {
-      alert('Klicken Sie auf die Karte, um einen neuen Standort auszuwählen.');
-      map.once('click', e => resolve([e.latlng.lat, e.latlng.lng]));
-    })
-    : platz.coords;
-
-  const updatedPlace = { platzName: updatedName, zugang: updatedZugang, publicAccess: updatedPublicAccess, anzahlFelder: updatedAnzahlFelder, coords: newCoords, notizen: updatedNotizen };
+  const updatedPlace = {
+    ...platz, // Keep the original _id and other properties
+    platzName: updatedName,
+    zugang: updatedZugang,
+    publicAccess: updatedPublicAccess,
+    anzahlFelder: updatedAnzahlFelder,
+    notizen: updatedNotizen
+  };
 
   try {
     const response = await fetch(`/api/places/${platz._id}`, {
@@ -143,8 +165,15 @@ export async function handleEditPlace (platz) {
     });
 
     if (!response.ok) throw new Error('Platz konnte nicht aktualisiert werden');
+
+    // Update marker in place instead of removing and re-adding
+    updateMarker(updatedPlace);
+
     alert('Platz erfolgreich aktualisiert!');
-    ladePlatz();
+
+    // Only update the places list without reloading all markers
+    const places = await fetchPlaces();
+    renderPlaces(places);
   } catch (error) {
     console.error('Fehler beim Aktualisieren des Platzes:', error.message);
   }
@@ -155,21 +184,38 @@ export async function handleDeletePlace (placeId) {
   if (!confirm('Sind Sie sicher, dass Sie diesen Platz löschen möchten?')) return;
 
   try {
-    const response = await fetch(`/api/places/${placeId}`, { method: 'DELETE' });
+    const response = await fetch(`/api/places/${placeId}`, {
+      method: 'DELETE',
+      // Add headers to ensure the request is properly processed
+      headers: { 'Content-Type': 'application/json' }
+    });
 
-    if (!response.ok) throw new Error('Fehler beim Löschen des Platzes');
-
-    if (markers.has(placeId)) {
-      map.removeLayer(markers.get(placeId));
-      markers.delete(placeId);
+    if (!response.ok) {
+      console.error('Server response:', response.status, response.statusText);
+      throw new Error('Fehler beim Löschen des Platzes');
     }
 
+    // Remove the marker from the map
+    removeMarker(placeId);
+
+    // Remove the item from the list
     document.querySelector(`#locationList li[data-id="${placeId}"]`)?.remove();
+
     alert('Platz erfolgreich gelöscht!');
   } catch (error) {
     console.error('Fehler beim Löschen des Platzes:', error.message);
+    alert('Fehler beim Löschen: ' + error.message);
   }
 }
+
+// Listen for custom events from map.mjs
+document.addEventListener('editPlace', (event) => {
+  handleEditPlace(event.detail);
+});
+
+document.addEventListener('deletePlace', (event) => {
+  handleDeletePlace(event.detail);
+});
 
 // Attach event listener for map clicks
 map.on('click', handleMapClick);
