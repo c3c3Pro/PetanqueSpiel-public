@@ -12,7 +12,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const MONGO_URI = 'mongodb://127.0.0.1:27017/petanque';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://myUser:c3c3%40m0ngDB%23%21@cluster0.907ud.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 // Middleware
 app.use(cors());
