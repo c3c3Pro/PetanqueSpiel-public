@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/style.css" > 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /> 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <title>Pétanque</title>
+</head>
+<body>
+     <!-- Header Section -->
+     <header>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#map">Platzverwaltung</a></li>
+                <li><a href="#games">Spielleitung</a></li>
+                <li><a href="#matchList">Spielverlauf</a></li>
+            </ul>
+        </nav>
+    </header>
+    <!-- Main Content -->
+    <main class="container">
+        <div id="welcome">
+            <h1>Herzlich Wilkommen ins Pétanque-Spiel!!</h1>
+                <p>Diese Webseite hilft dir, Pétanque-Plaetze in ganz Deutschland zu finden
+                und hinzufügen. Klicke auf die Karte, um einen neuen Ort einzutragen, bestehende
+                plaetze anzusehen und zur Pétanque-Community beizutragen!
+                </p>
+        </div>
+         <!--map section--> 
+         <section id="map-container">
+            <h1>Interaktive Mappe</h1>
+            <div id="map" style="height: 400px; width: 100%;"></div>
+        </section>
+
+        <section id="games">
+            <h2>Spielleitung</h2>
+            
+            
+            <div id="gameList">
+                <h3>laufende Spiele</h3>
+
+                <!-- Match Management Form -->
+                 <form id="matchForm">
+                     <label for="matchDate">Spiel Datum:</label>
+                     <input type="date" id="matchDate" name="matchDate" required>
+
+                     <label for="matchTime">Spiel Zeit:</label>
+                     <input type="time" id="matchTime" name="matchTime" required>
+            
+                     <label for="players">Spieler:</label>
+                     <input type="text" id="players" name="players" placeholder="Player1, Player2, ..." required>
+
+                     <label for="score">Score:</label>
+                     <input type="text" id="score" name="score" placeholder="e.g., 13:10" required>
+
+                     <button type="submit" class="btn">Spiel hinzufugen</button>
+                 </form>
+                <ul id="ongoingGameList">
+                    <!-- active games will be listed dynamically -->
+                </ul>
+            </div>
+
+            <div id="completed-games">
+                <h3>abgeschlossene Spiele</h3>
+                <ul>
+                    <!-- Paginated list of games -->
+                </ul>
+            </div>
+        </section>
+        <!-- Match List -->
+        <section id="matchList">
+            <h3>Spielverlauf</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Zeit</th>
+                        <th>Spieler</th>
+                        <th>Ergebnis</th>
+                        <th>Aktion</th>
+                    </tr>
+                </thead>
+                <tbody id="matchTableBody">
+                    <!-- Spiele werden hier dynamisch eingefügt -->
+                </tbody>
+            </table>
+        </section>
+           <!--paginierung hier-->
+           <div id="paginationControls">
+            <button id="prevPage">Vorherige</button>
+            <span id="pageInfo">Seite 1</span>
+            <button id="nextPage">Nächste</button>
+        </div>
+           
+    </main>
+
+     <!-- Footer -->
+     <footer>
+        <p>&copy; 2025 Pétanque Place Manager</p>
+    </footer>
+
+    <!-- Link to the bundled JavaScript file -->
+    <script src="bundle.js" defer></script>
+
+    </body>
+</html>
